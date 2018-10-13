@@ -4,17 +4,20 @@
     ViewData["Title"] = "Index";
 }
 
-<h2>Index</h2>
+<h2>Przeglądaj</h2>
 
 <p>
-    <a asp-action="Create">Create New</a>
+    <a asp-action="Create">Nowa książka</a>
 </p>
 <table class="table">
     <thead>
         <tr>
             <th>
-                @Html.DisplayNameFor(model => model.Tytul)
-            </th>
+                <a asp-action="Index" asp-route-sortOrder="@ViewData["Tytuly"]">@Html.DisplayNameFor(model => model.Tytul)</a>
+</th>
+            <th>
+                <a asp-action="Index" asp-route-sortOrder="@ViewData["Autorzy"]">@Html.DisplayNameFor(model => model.Autor)</a>
+</th>
             <th>
                 @Html.DisplayNameFor(model => model.Gatunek)
             </th>
@@ -28,12 +31,16 @@
                 @Html.DisplayFor(modelItem => item.Tytul)
             </td>
             <td>
+                @Html.DisplayFor(modelItem => item.Autor.Nazwisko)
+                @Html.DisplayFor(modelItem => item.Autor.Imie)
+            </td>
+            <td>
                 @Html.DisplayFor(modelItem => item.Gatunek)
             </td>
             <td>
-                <a asp-action="Edit" asp-route-id="@item.ID">Edit</a> |
-                <a asp-action="Details" asp-route-id="@item.ID">Details</a> |
-                <a asp-action="Delete" asp-route-id="@item.ID">Delete</a>
+                <a asp-action="Edit" asp-route-id="@item.ID">Edytuj</a> |
+                <a asp-action="Details" asp-route-id="@item.ID">Szczegóły</a> |
+                <a asp-action="Delete" asp-route-id="@item.ID">Usuń</a>
             </td>
         </tr>
 }

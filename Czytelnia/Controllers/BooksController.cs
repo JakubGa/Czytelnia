@@ -20,9 +20,28 @@ namespace Czytelnia.Controllers
         }
 
         // GET: Books
-        public async Task<IActionResult> Index()
+        public async Task<IActionResult> Index(string sortOrder)
         {
-            return View(await _context.Books.ToListAsync());
+            ViewData["Tytuly"] = String.IsNullOrEmpty(sortOrder) ? "tytuly_malejaco" : "";
+            ViewData["Autorzy"] = sortOrder == "autorzy_rosnaco" ? "autorzy_rosnaco" : "autorzy_malejaco";
+            var books = from b in _context.Books
+                           select b;
+            switch (sortOrder)
+            {
+                case "tytuly_malejaco":
+                    books = books.OrderByDescending(b => b.Tytul);
+                    break;
+                case "autorzy_rosnaco":
+                    books = books.OrderBy(b => b.Autor.Nazwisko);
+                    break;
+                case "autorzy_malejaco":
+                    books = books.OrderByDescending(b => b.Autor.Nazwisko);
+                    break;
+                default:
+                    books = books.OrderBy(b => b.Tytul);
+                    break;
+            }
+            return View(await _context.Books.Include(a=>a.Autor).AsNoTracking().ToListAsync());
         }
 
         // GET: Books/Details/5
@@ -34,7 +53,9 @@ namespace Czytelnia.Controllers
             }
 
             var book = await _context.Books
-                .FirstOrDefaultAsync(m => m.ID == id);
+                .Include(a=>a.Autor)
+                .AsNoTracking()
+                .SingleOrDefaultAsync(m => m.ID == id);
             if (book == null)
             {
                 return NotFound();
@@ -46,6 +67,8 @@ namespace Czytelnia.Controllers
         // GET: Books/Create
         public IActionResult Create()
         {
+            PopulateAuthorDropdownList();
+            PopulateGatunekDropDownList();
             return View();
         }
 
@@ -72,6 +95,8 @@ namespace Czytelnia.Controllers
             "Try again, and if the problem persists " +
             "see your system administrator.");
             }
+            PopulateAuthorDropdownList(book.Autor);
+            PopulateGatunekDropDownList(book.Gatunek);
             return View(book);
         }
 
@@ -88,6 +113,8 @@ namespace Czytelnia.Controllers
             {
                 return NotFound();
             }
+            PopulateAuthorDropdownList(book.Autor);
+            PopulateGatunekDropDownList(book.Gatunek);
             return View(book);
         }
 
@@ -123,11 +150,27 @@ namespace Czytelnia.Controllers
                 }
                 return RedirectToAction(nameof(Index));
             }
+            PopulateAuthorDropdownList(book.Autor);
+            PopulateGatunekDropDownList(book.Gatunek);
             return View(book);
         }
 
+        private void PopulateAuthorDropdownList(object selectedAuthor = null)
+        {
+            var departmentsQuery = from d in _context.Authors
+                                   orderby d.Nazwisko
+                                   select d;
+            ViewBag.Autor = new SelectList(departmentsQuery.AsNoTracking(), "ID", "Nazwisko", selectedAuthor);
+        }
+        private void PopulateGatunekDropDownList(object selectedGatunek = null)
+        {
+            var gatunki = from Gatunek d in Enum.GetValues(typeof(Gatunek))
+                             select new { ID = (int)d, Name = d.ToString() };
+            ViewBag.Gatunek = new SelectList(gatunki, "ID", "Name", selectedGatunek);
+        }
+
         // GET: Books/Delete/5
-        public async Task<IActionResult> Delete(int? id)
+        public async Task<IActionResult> Delete(int? id, bool? saveChangesError = false)
         {
             if (id == null)
             {
@@ -135,10 +178,18 @@ namespace Czytelnia.Controllers
             }
 
             var book = await _context.Books
+                .AsNoTracking()
                 .FirstOrDefaultAsync(m => m.ID == id);
             if (book == null)
             {
                 return NotFound();
+            }
+
+            if (saveChangesError.GetValueOrDefault())
+            {
+                ViewData["ErrorMessage"] =
+                    "Delete failed. Try again, and if the problem persists " +
+                    "see your system administrator.";
             }
 
             return View(book);
