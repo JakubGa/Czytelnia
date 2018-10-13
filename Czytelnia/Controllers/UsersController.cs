@@ -22,7 +22,7 @@ namespace Czytelnia.Controllers
         // GET: Users
         public async Task<IActionResult> Index()
         {
-            return View(await _context.Users.ToListAsync());
+            return View(await _context.Users.Include(b=>b.Books).AsNoTracking().ToListAsync());
         }
 
         // GET: Users/Details/5
@@ -34,6 +34,8 @@ namespace Czytelnia.Controllers
             }
 
             var user = await _context.Users
+                .Include(b=>b.Books)
+                .AsNoTracking()
                 .FirstOrDefaultAsync(m => m.ID == id);
             if (user == null)
             {
@@ -73,11 +75,15 @@ namespace Czytelnia.Controllers
                 return NotFound();
             }
 
-            var user = await _context.Users.FindAsync(id);
+            var user = await _context.Users
+                .Include(b => b.Books)
+                .AsNoTracking()
+                .FirstOrDefaultAsync(m => m.ID == id); ;
             if (user == null)
             {
                 return NotFound();
             }
+            PopulateBookDropdownList();
             return View(user);
         }
 
@@ -113,7 +119,16 @@ namespace Czytelnia.Controllers
                 }
                 return RedirectToAction(nameof(Index));
             }
+            PopulateBookDropdownList();
             return View(user);
+        }
+
+        private void PopulateBookDropdownList(object selectedBook = null)
+        {
+            var booksQuery = from d in _context.Books
+                                   orderby d.Tytul
+                                   select d;
+            ViewBag.Books = new SelectList(booksQuery.AsNoTracking(), "ID", "Tytul", selectedBook);
         }
 
         // GET: Users/Delete/5

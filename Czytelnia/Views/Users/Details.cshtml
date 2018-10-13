@@ -28,6 +28,28 @@
         <dd>
             @Html.DisplayFor(model => model.Zapisany_od)
         </dd>
+        <dt>
+            @Html.DisplayNameFor(model => model.Books)
+        </dt>
+        <dd>
+            <table class="table">
+                <tr>
+                    <th>Tytuł</th>
+                    <th>Autor</th>
+                </tr>
+                @foreach (var item in Model.Books)
+                {
+                    <tr>
+                        <td>
+                            @Html.DisplayFor(modelItem => item.Tytul)
+                        </td>
+                        <td>
+                            @Html.DisplayFor(modelItem => item.Autor)
+                        </td>
+                    </tr>
+                }
+            </table>
+        </dd>
     </dl>
 </div>
 <div>

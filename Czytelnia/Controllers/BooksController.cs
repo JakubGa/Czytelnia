@@ -20,12 +20,28 @@ namespace Czytelnia.Controllers
         }
 
         // GET: Books
-        public async Task<IActionResult> Index(string sortOrder)
+        public async Task<IActionResult> Index(string sortOrder, string searchString, string currentFilter, int? page)
         {
+            ViewData["CurrentSort"]=sortOrder;
             ViewData["Tytuly"] = String.IsNullOrEmpty(sortOrder) ? "tytuly_malejaco" : "";
-            ViewData["Autorzy"] = sortOrder == "autorzy_rosnaco" ? "autorzy_rosnaco" : "autorzy_malejaco";
-            var books = from b in _context.Books
+            ViewData["Autorzy"] = sortOrder == "autorzy_malejaco" ? "autorzy_rosnaco" : "autorzy_malejaco";
+            if (searchString != null)
+            {
+                page = 1;
+            }
+            else
+            {
+                searchString = currentFilter;
+            }
+            ViewData["CurrentFilter"] = searchString;
+            var books = from b in _context.Books.Include(a=>a.Autor)
                            select b;
+            if (!String.IsNullOrEmpty(searchString))
+            {
+                books = books.Where(b => b.Autor.Nazwisko.Contains(searchString)
+                                       || b.Tytul.Contains(searchString)
+                                       || b.Autor.Imie.Contains(searchString));
+            }
             switch (sortOrder)
             {
                 case "tytuly_malejaco":
@@ -41,7 +57,9 @@ namespace Czytelnia.Controllers
                     books = books.OrderBy(b => b.Tytul);
                     break;
             }
-            return View(await _context.Books.Include(a=>a.Autor).AsNoTracking().ToListAsync());
+            int pageSize = 10;
+            //return View(await PaginatedList<Student>.CreateAsync(students.AsNoTracking(), page ?? 1, pageSize));
+            return View(await PaginatedList<Book>.CreateAsync(books.AsNoTracking(),page ?? 1, pageSize));
         }
 
         // GET: Books/Details/5
@@ -108,7 +126,8 @@ namespace Czytelnia.Controllers
                 return NotFound();
             }
 
-            var book = await _context.Books.FindAsync(id);
+            var book = await _context.Books.Include(a => a.Autor).SingleOrDefaultAsync(m => m.ID == id);
+
             if (book == null)
             {
                 return NotFound();
@@ -132,23 +151,23 @@ namespace Czytelnia.Controllers
 
             if (ModelState.IsValid)
             {
-                try
+                if (await TryUpdateModelAsync<Book>(book,
+                    "",
+                    c => c.Tytul, c => c.Autor, c => c.Gatunek))
                 {
-                    _context.Update(book);
-                    await _context.SaveChangesAsync();
-                }
-                catch (DbUpdateConcurrencyException)
-                {
-                    if (!BookExists(book.ID))
+                    try
                     {
-                        return NotFound();
+                        await _context.SaveChangesAsync();
                     }
-                    else
+                    catch (DbUpdateException /* ex */)
                     {
-                        throw;
+                        //Log the error (uncomment ex variable name and write a log.)
+                        ModelState.AddModelError("", "Unable to save changes. " +
+                            "Try again, and if the problem persists, " +
+                            "see your system administrator.");
                     }
+                    return RedirectToAction(nameof(Index));
                 }
-                return RedirectToAction(nameof(Index));
             }
             PopulateAuthorDropdownList(book.Autor);
             PopulateGatunekDropDownList(book.Gatunek);
