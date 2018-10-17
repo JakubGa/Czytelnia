@@ -1,0 +1,98 @@
+﻿@model Czytelnia.Models.User
+
+@{
+    ViewData["Title"] = "Wypozycz";
+}
+
+<h2>Wypożyczenia</h2>
+
+<h4>Czytelnik</h4>
+<hr />
+<div class="row">
+    <div class="col-md-4">
+        <form asp-action="Wypozycz">
+            <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+            <input type="hidden" asp-for="UserID" />
+            <input type="hidden" asp-for="Imie" />
+            <input type="hidden" asp-for="Nazwisko" />
+            <input type="hidden" asp-for="Zapisany_od" />
+            <div>
+                <table class="table">
+                    <tr>
+                        <th>
+                            @Html.DisplayNameFor(model => model.Imie)
+                        </th>
+                        <th>
+                            @Html.DisplayNameFor(model => model.Nazwisko)
+                        </th>
+                    </tr>
+                    <tr>
+                        <td>
+                            @Html.DisplayFor(model => model.Imie)
+                        </td>
+
+                        <td>
+                            @Html.DisplayFor(model => model.Nazwisko)
+                        </td>
+
+                    </tr>
+                </table>
+            </div>
+            <div>
+                <table class="table">
+                    <tr>
+                        <th>Tytuł</th>
+                        <th>Autor</th>
+                        <th>Zwróc</th>
+                    </tr>
+                    @foreach (var item in Model.Books)
+                    {
+                    <tr>
+                        <td>
+                            @Html.DisplayFor(modelItem => item.Tytul)
+                        </td>
+                        <td>
+                            @Html.DisplayFor(modelItem => item.Autor)
+                        </td>
+                        <td>
+
+                            <input type="checkbox"
+                                   name="selectedBooks"
+                                   value="@item.BookID"
+                                   />
+                                    
+                            </td>
+                    </tr>
+                    }
+                </table>
+            </div>
+            <div>
+                <table class="table">
+                    <tr>
+                        <td class="form-group">
+
+                            <select asp-for="Books" class="form-control" asp-items="ViewBag.Books">
+                                <option value="">-- Wybierz książkę --</option>
+                            </select>
+                            <span asp-validation-for="Books" class="text-danger"></span>
+                        </td>
+                        <td class="form-group">
+                            <input type="submit" value="Wypożycz" class="btn btn-default"/>
+                        </td>
+                    </tr>
+                </table>
+            </div>
+            <div class="form-group">
+                <input type="submit" value="Zatwierdź" class="btn btn-default" />
+            </div>
+        </form>
+    </div>
+</div>
+
+<div>
+    <a asp-action="Index">Powrót</a>
+</div>
+
+@section Scripts {
+    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+}

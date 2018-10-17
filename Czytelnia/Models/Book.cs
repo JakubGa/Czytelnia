@@ -12,9 +12,10 @@ namespace Czytelnia.Models
     }
     public class Book
     {
-        public int ID { get; set; }
+        public int BookID { get; set; }
         [Display(Name="Tytuł")]
         public string Tytul { get; set; }
+        public int AuthorID { get; set; }
         public Author Autor { get; set; }
         public Gatunek Gatunek { get; set; }
     }

@@ -73,7 +73,7 @@ namespace Czytelnia.Controllers
             var book = await _context.Books
                 .Include(a=>a.Autor)
                 .AsNoTracking()
-                .SingleOrDefaultAsync(m => m.ID == id);
+                .SingleOrDefaultAsync(m => m.BookID == id);
             if (book == null)
             {
                 return NotFound();
@@ -95,7 +95,7 @@ namespace Czytelnia.Controllers
         // more details see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Create([Bind("Tytul,Gatunek")] Book book)
+        public async Task<IActionResult> Create([Bind("BookID,Tytul,AuthorID,Gatunek")] Book book)
         {
             try
             {
@@ -126,7 +126,7 @@ namespace Czytelnia.Controllers
                 return NotFound();
             }
 
-            var book = await _context.Books.Include(a => a.Autor).SingleOrDefaultAsync(m => m.ID == id);
+            var book = await _context.Books.SingleOrDefaultAsync(m => m.BookID == id);
 
             if (book == null)
             {
@@ -142,18 +142,18 @@ namespace Czytelnia.Controllers
         // more details see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Edit(int id, [Bind("ID,Tytul,Gatunek")] Book book)
+        public async Task<IActionResult> EditPost(int? id)
         {
-            if (id != book.ID)
+            if (id == null)
             {
                 return NotFound();
             }
-
-            if (ModelState.IsValid)
-            {
-                if (await TryUpdateModelAsync<Book>(book,
+            var bookToUpdate = await _context.Books
+                .SingleOrDefaultAsync(c => c.BookID == id);
+            
+                if (await TryUpdateModelAsync<Book>(bookToUpdate,
                     "",
-                    c => c.Tytul, c => c.Autor, c => c.Gatunek))
+                    c => c.Tytul, c => c.AuthorID, c => c.Gatunek))
                 {
                     try
                     {
@@ -167,11 +167,11 @@ namespace Czytelnia.Controllers
                             "see your system administrator.");
                     }
                     return RedirectToAction(nameof(Index));
-                }
-            }
-            PopulateAuthorDropdownList(book.Autor);
-            PopulateGatunekDropDownList(book.Gatunek);
-            return View(book);
+                
+                 }
+            PopulateAuthorDropdownList(bookToUpdate.Autor);
+            PopulateGatunekDropDownList(bookToUpdate.Gatunek);
+            return View(bookToUpdate);
         }
 
         private void PopulateAuthorDropdownList(object selectedAuthor = null)
@@ -179,7 +179,7 @@ namespace Czytelnia.Controllers
             var departmentsQuery = from d in _context.Authors
                                    orderby d.Nazwisko
                                    select d;
-            ViewBag.Autor = new SelectList(departmentsQuery.AsNoTracking(), "ID", "Nazwisko", selectedAuthor);
+            ViewBag.Autor = new SelectList(departmentsQuery.AsNoTracking(), "AuthorID", "Nazwisko", selectedAuthor);
         }
         private void PopulateGatunekDropDownList(object selectedGatunek = null)
         {
@@ -197,8 +197,9 @@ namespace Czytelnia.Controllers
             }
 
             var book = await _context.Books
+                .Include(a => a.Autor)
                 .AsNoTracking()
-                .FirstOrDefaultAsync(m => m.ID == id);
+                .FirstOrDefaultAsync(m => m.BookID == id);
             if (book == null)
             {
                 return NotFound();
@@ -227,7 +228,7 @@ namespace Czytelnia.Controllers
 
         private bool BookExists(int id)
         {
-            return _context.Books.Any(e => e.ID == id);
+            return _context.Books.Any(e => e.BookID == id);
         }
     }
 }

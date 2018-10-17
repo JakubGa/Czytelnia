@@ -48,9 +48,9 @@
                     @Html.DisplayFor(modelItem => item.Gatunek)
                 </td>
                 <td>
-                    <a asp-action="Edit" asp-route-id="@item.ID">Edytuj</a> |
-                    <a asp-action="Details" asp-route-id="@item.ID">Szczegóły</a> |
-                    <a asp-action="Delete" asp-route-id="@item.ID">Usuń</a>
+                    <a asp-action="Edit" asp-route-id="@item.BookID">Edytuj</a> |
+                    <a asp-action="Details" asp-route-id="@item.BookID">Szczegóły</a> |
+                    <a asp-action="Delete" asp-route-id="@item.BookID">Usuń</a>
                 </td>
             </tr>
         }

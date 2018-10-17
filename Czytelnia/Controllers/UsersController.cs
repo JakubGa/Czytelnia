@@ -36,7 +36,7 @@ namespace Czytelnia.Controllers
             var user = await _context.Users
                 .Include(b=>b.Books)
                 .AsNoTracking()
-                .FirstOrDefaultAsync(m => m.ID == id);
+                .FirstOrDefaultAsync(m => m.UserID == id);
             if (user == null)
             {
                 return NotFound();
@@ -48,6 +48,7 @@ namespace Czytelnia.Controllers
         // GET: Users/Create
         public IActionResult Create()
         {
+            var Books = new List<Book>();
             return View();
         }
 
@@ -56,7 +57,7 @@ namespace Czytelnia.Controllers
         // more details see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Create([Bind("ID,Imie,Nazwisko,Zapisany_od")] User user)
+        public async Task<IActionResult> Create([Bind("UserID,Imie,Nazwisko,Zapisany_od,Books")] User user)
         {
             if (ModelState.IsValid)
             {
@@ -68,7 +69,7 @@ namespace Czytelnia.Controllers
         }
 
         // GET: Users/Edit/5
-        public async Task<IActionResult> Edit(int? id)
+        public async Task<IActionResult> Edit(int? id, string[] oddane)
         {
             if (id == null)
             {
@@ -76,14 +77,13 @@ namespace Czytelnia.Controllers
             }
 
             var user = await _context.Users
-                .Include(b => b.Books)
+                .Include(u=>u.Books)
                 .AsNoTracking()
-                .FirstOrDefaultAsync(m => m.ID == id); ;
+                .FirstOrDefaultAsync(m => m.UserID == id); ;
             if (user == null)
             {
                 return NotFound();
             }
-            PopulateBookDropdownList();
             return View(user);
         }
 
@@ -92,9 +92,9 @@ namespace Czytelnia.Controllers
         // more details see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Edit(int id, [Bind("ID,Imie,Nazwisko,Zapisany_od")] User user)
+        public async Task<IActionResult> Edit(int id, [Bind("UserID,Imie,Nazwisko,Zapisany_od,Books")] User user)
         {
-            if (id != user.ID)
+            if (id != user.UserID)
             {
                 return NotFound();
             }
@@ -108,7 +108,7 @@ namespace Czytelnia.Controllers
                 }
                 catch (DbUpdateConcurrencyException)
                 {
-                    if (!UserExists(user.ID))
+                    if (!UserExists(user.UserID))
                     {
                         return NotFound();
                     }
@@ -119,7 +119,6 @@ namespace Czytelnia.Controllers
                 }
                 return RedirectToAction(nameof(Index));
             }
-            PopulateBookDropdownList();
             return View(user);
         }
 
@@ -128,7 +127,7 @@ namespace Czytelnia.Controllers
             var booksQuery = from d in _context.Books
                                    orderby d.Tytul
                                    select d;
-            ViewBag.Books = new SelectList(booksQuery.AsNoTracking(), "ID", "Tytul", selectedBook);
+            ViewBag.Books = new SelectList(booksQuery.AsNoTracking(), "BookID", "Tytul", selectedBook);
         }
 
         // GET: Users/Delete/5
@@ -140,7 +139,7 @@ namespace Czytelnia.Controllers
             }
 
             var user = await _context.Users
-                .FirstOrDefaultAsync(m => m.ID == id);
+                .FirstOrDefaultAsync(m => m.UserID == id);
             if (user == null)
             {
                 return NotFound();
@@ -162,7 +161,84 @@ namespace Czytelnia.Controllers
 
         private bool UserExists(int id)
         {
-            return _context.Users.Any(e => e.ID == id);
+            return _context.Users.Any(e => e.UserID == id);
+        }
+        public async Task<IActionResult> Wypozycz(int? id)
+        {
+            if (id == null)
+            {
+                return NotFound();
+            }
+
+            var user = await _context.Users
+                .Include(u=>u.Books)
+                .AsNoTracking()
+                .FirstOrDefaultAsync(m => m.UserID == id); ;
+            if (user == null)
+            {
+                return NotFound();
+            }
+            PopulateBookDropdownList();
+            return View(user);
+        }
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> Wypozycz(int id, [Bind("UserID,Imie,Nazwisko,Zapisany_od,Books")] User user, int[] selectedBooks)
+        {
+            if (id != user.UserID)
+            {
+                return NotFound();
+            }
+            var userToUpdate = await _context.Users
+                .Include(u => u.Books)
+                .SingleOrDefaultAsync(m => m.UserID == id);
+
+            if (ModelState.IsValid)
+            {
+                UpdateUserBooks(userToUpdate, selectedBooks);
+                try
+                {
+                    _context.Update(user);
+                    await _context.SaveChangesAsync();
+                }
+                catch (DbUpdateConcurrencyException)
+                {
+                    if (!UserExists(user.UserID))
+                    {
+                        return NotFound();
+                    }
+                    else
+                    {
+                        throw;
+                    }
+                }
+                return RedirectToAction(nameof(Index));
+            }
+            PopulateBookDropdownList();
+            return View(user);
+        }
+        private void UpdateUserBooks(User userToUpdate, int[] selectedBooks)
+        {
+            if(selectedBooks == null)
+            {
+                userToUpdate.Books = new List<Book>();
+                return;
+            }
+            var selectedBooksHS = new HashSet<int>(selectedBooks);
+            var currentBooks = new HashSet<int>
+                (userToUpdate.Books.Select(b => b.BookID));
+            foreach(var book in _context.Books)
+            {
+                if(selectedBooksHS.Contains(book.BookID))
+                {
+                    if(!currentBooks.Contains(book.BookID))
+                    {
+                        userToUpdate.Books.Add(new Book { BookID = book.BookID, Tytul = book.Tytul, AuthorID = book.AuthorID, Autor = book.Autor, Gatunek = book.Gatunek });
+                    }
+                }
+            }
         }
     }
+
+   
 }

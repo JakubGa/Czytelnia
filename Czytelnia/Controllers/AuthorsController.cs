@@ -34,7 +34,7 @@ namespace Czytelnia.Controllers
             }
 
             var author = await _context.Authors
-                .FirstOrDefaultAsync(m => m.ID == id);
+                .FirstOrDefaultAsync(m => m.AuthorID == id);
             if (author == null)
             {
                 return NotFound();
@@ -54,7 +54,7 @@ namespace Czytelnia.Controllers
         // more details see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Create([Bind("ID,Imie,Nazwisko")] Author author)
+        public async Task<IActionResult> Create([Bind("AuthorID,Imie,Nazwisko")] Author author)
         {
             if (ModelState.IsValid)
             {
@@ -86,9 +86,9 @@ namespace Czytelnia.Controllers
         // more details see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Edit(int id, [Bind("ID,Imie,Nazwisko")] Author author)
+        public async Task<IActionResult> Edit(int id, [Bind("AuthorID,Imie,Nazwisko")] Author author)
         {
-            if (id != author.ID)
+            if (id != author.AuthorID)
             {
                 return NotFound();
             }
@@ -102,7 +102,7 @@ namespace Czytelnia.Controllers
                 }
                 catch (DbUpdateConcurrencyException)
                 {
-                    if (!AuthorExists(author.ID))
+                    if (!AuthorExists(author.AuthorID))
                     {
                         return NotFound();
                     }
@@ -125,7 +125,7 @@ namespace Czytelnia.Controllers
             }
 
             var author = await _context.Authors
-                .FirstOrDefaultAsync(m => m.ID == id);
+                .FirstOrDefaultAsync(m => m.AuthorID == id);
             if (author == null)
             {
                 return NotFound();
@@ -147,7 +147,7 @@ namespace Czytelnia.Controllers
 
         private bool AuthorExists(int id)
         {
-            return _context.Authors.Any(e => e.ID == id);
+            return _context.Authors.Any(e => e.AuthorID == id);
         }
     }
 }

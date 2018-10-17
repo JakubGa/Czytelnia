@@ -37,9 +37,10 @@
                 @Html.DisplayFor(modelItem => item.Zapisany_od)
             </td>
             <td>
-                <a asp-action="Edit" asp-route-id="@item.ID">Wypożycz</a> |
-                <a asp-action="Details" asp-route-id="@item.ID">Szczegóły</a> |
-                <a asp-action="Delete" asp-route-id="@item.ID">Usuń</a>
+                <a asp-action="Edit" asp-route-id="@item.UserID">Edytuj</a> |
+                <a asp-action="Wypozycz" asp-route-id="@item.UserID">Wypożycz</a> |
+                <a asp-action="Details" asp-route-id="@item.UserID">Szczegóły</a> |
+                <a asp-action="Delete" asp-route-id="@item.UserID">Usuń</a>
             </td>
         </tr>
 }

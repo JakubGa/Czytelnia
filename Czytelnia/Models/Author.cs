@@ -8,7 +8,7 @@ namespace Czytelnia.Models
 {
     public class Author
     {
-        public int ID { get; set; }
+        public int AuthorID { get; set; }
         [Display(Name="Imię")]
         public string Imie { get; set; }
         public string Nazwisko { get; set; }
