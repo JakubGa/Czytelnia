@@ -35,6 +35,7 @@ namespace Czytelnia.Controllers
 
             var user = await _context.Users
                 .Include(b=>b.Books)
+                    .ThenInclude(b=>b.Autor)
                 .AsNoTracking()
                 .FirstOrDefaultAsync(m => m.UserID == id);
             if (user == null)
@@ -122,12 +123,19 @@ namespace Czytelnia.Controllers
             return View(user);
         }
 
-        private void PopulateBookDropdownList(object selectedBook = null)
+
+        private void PopulateBookDropdownList(string searchString)
         {
+            //string query = "SELECT * FROM Book WHERE UserID = null";
             var booksQuery = from d in _context.Books
-                                   orderby d.Tytul
                                    select d;
-            ViewBag.Books = new SelectList(booksQuery.AsNoTracking(), "BookID", "Tytul", selectedBook);
+            if (!String.IsNullOrEmpty(searchString))
+            {
+                booksQuery = booksQuery.Where(b => b.Tytul.Contains(searchString)).OrderBy(b=>b.Tytul);
+            }
+            
+            ViewBag.Books = new List<Book>(booksQuery.Where(b=>b.UserID==null).Include(b=>b.Autor).AsNoTracking());
+            
         }
 
         // GET: Users/Delete/5
@@ -163,42 +171,54 @@ namespace Czytelnia.Controllers
         {
             return _context.Users.Any(e => e.UserID == id);
         }
-        public async Task<IActionResult> Wypozycz(int? id)
+        public async Task<IActionResult> Wypozycz(int? id, string currentFilter,string searchString)
         {
             if (id == null)
             {
                 return NotFound();
             }
-
+            ViewData["CurrentFilter"] = searchString;
+            if (searchString == null)
+            {
+                searchString = currentFilter;
+            }
             var user = await _context.Users
                 .Include(u=>u.Books)
+                    .ThenInclude(b =>b.Autor)
                 .AsNoTracking()
                 .FirstOrDefaultAsync(m => m.UserID == id); ;
             if (user == null)
             {
                 return NotFound();
             }
-            PopulateBookDropdownList();
+            PopulateBookDropdownList(searchString);
             return View(user);
         }
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Wypozycz(int id, [Bind("UserID,Imie,Nazwisko,Zapisany_od,Books")] User user, int[] selectedBooks)
+        public async Task<IActionResult> Wypozycz(int id, [Bind("UserID,Imie,Nazwisko,Zapisany_od,Books")] User user, int[] selectedBooks,string searchString,string currentFilter)
         {
             if (id != user.UserID)
             {
                 return NotFound();
             }
-            var userToUpdate = await _context.Users
+            ViewData["CurrentFilter"] = searchString;
+            if (searchString==null)
+            {
+                searchString = currentFilter;
+            }
+            user = await _context.Users
                 .Include(u => u.Books)
+                    .ThenInclude(b=>b.Autor)
+                .AsNoTracking()
                 .SingleOrDefaultAsync(m => m.UserID == id);
 
             if (ModelState.IsValid)
-            {
-                UpdateUserBooks(userToUpdate, selectedBooks);
+            {                
+                UpdateUserBooks(user, selectedBooks);
                 try
                 {
-                    _context.Update(user);
+                    _context.Update(user);                    
                     await _context.SaveChangesAsync();
                 }
                 catch (DbUpdateConcurrencyException)
@@ -212,13 +232,15 @@ namespace Czytelnia.Controllers
                         throw;
                     }
                 }
-                return RedirectToAction(nameof(Index));
+                PopulateBookDropdownList(searchString);
+                return RedirectToAction(nameof(Wypozycz));
             }
-            PopulateBookDropdownList();
+            PopulateBookDropdownList(searchString);
             return View(user);
         }
         private void UpdateUserBooks(User userToUpdate, int[] selectedBooks)
         {
+            
             if(selectedBooks == null)
             {
                 userToUpdate.Books = new List<Book>();
@@ -227,11 +249,19 @@ namespace Czytelnia.Controllers
             var selectedBooksHS = new HashSet<int>(selectedBooks);
             var currentBooks = new HashSet<int>
                 (userToUpdate.Books.Select(b => b.BookID));
-            foreach(var book in _context.Books)
+            foreach(var book in _context.Books.Include(a=>a.Autor).AsNoTracking())
             {
                 if(selectedBooksHS.Contains(book.BookID))
                 {
-                    if(!currentBooks.Contains(book.BookID))
+                    if(currentBooks.Contains(book.BookID))
+                    {
+                        Book removedBook = userToUpdate.Books.SingleOrDefault(b => b.BookID == book.BookID);
+                        _context.Remove(removedBook);
+                        _context.Books.Add(new Book { Tytul = book.Tytul, AuthorID = book.AuthorID, Autor = book.Autor, Gatunek = book.Gatunek });
+                        //userToUpdate.Books.Remove(removedBook);
+                        //_context.Update(removedBook);
+                    }
+                    else
                     {
                         userToUpdate.Books.Add(new Book { BookID = book.BookID, Tytul = book.Tytul, AuthorID = book.AuthorID, Autor = book.Autor, Gatunek = book.Gatunek });
                     }

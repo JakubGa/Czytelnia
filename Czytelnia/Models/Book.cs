@@ -18,5 +18,6 @@ namespace Czytelnia.Models
         public int AuthorID { get; set; }
         public Author Autor { get; set; }
         public Gatunek Gatunek { get; set; }
+        public int? UserID { get; set; }
     }
 }

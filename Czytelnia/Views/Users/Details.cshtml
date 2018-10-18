@@ -44,7 +44,8 @@
                             @Html.DisplayFor(modelItem => item.Tytul)
                         </td>
                         <td>
-                            @Html.DisplayFor(modelItem => item.Autor)
+                            @Html.DisplayFor(modelItem => item.Autor.Imie)
+                            @Html.DisplayFor(modelItem => item.Autor.Nazwisko)
                         </td>
                     </tr>
                 }

@@ -4,12 +4,12 @@
     ViewData["Title"] = "Wypozycz";
 }
 
-<h2>Wypożyczenia</h2>
+<h2>Edycja wypożyczeń</h2>
 
 <h4>Czytelnik</h4>
 <hr />
 <div class="row">
-    <div class="col-md-4">
+    <div class="col-md-6">
         <form asp-action="Wypozycz">
             <div asp-validation-summary="ModelOnly" class="text-danger"></div>
             <input type="hidden" asp-for="UserID" />
@@ -38,6 +38,7 @@
                     </tr>
                 </table>
             </div>
+            <h4>Wypożyczone</h4>
             <div>
                 <table class="table">
                     <tr>
@@ -47,50 +48,77 @@
                     </tr>
                     @foreach (var item in Model.Books)
                     {
-                    <tr>
-                        <td>
-                            @Html.DisplayFor(modelItem => item.Tytul)
-                        </td>
-                        <td>
-                            @Html.DisplayFor(modelItem => item.Autor)
-                        </td>
-                        <td>
-
-                            <input type="checkbox"
-                                   name="selectedBooks"
-                                   value="@item.BookID"
-                                   />
-                                    
+                        <tr>
+                            <td>
+                                @Html.DisplayFor(modelItem => item.Tytul)
                             </td>
-                    </tr>
-                    }
-                </table>
-            </div>
-            <div>
-                <table class="table">
-                    <tr>
-                        <td class="form-group">
+                            <td>
+                                @Html.DisplayFor(modelItem => item.Autor.Imie)
+                                @Html.DisplayFor(modelItem => item.Autor.Nazwisko)
+                            </td>
+                            <td>
 
-                            <select asp-for="Books" class="form-control" asp-items="ViewBag.Books">
-                                <option value="">-- Wybierz książkę --</option>
-                            </select>
-                            <span asp-validation-for="Books" class="text-danger"></span>
-                        </td>
-                        <td class="form-group">
-                            <input type="submit" value="Wypożycz" class="btn btn-default"/>
-                        </td>
-                    </tr>
+                                <input type="checkbox"
+                                       name="selectedBooks"
+                                       value="@item.BookID" />
+
+                            </td>
+                        </tr>
+                    }
                 </table>
             </div>
             <div class="form-group">
                 <input type="submit" value="Zatwierdź" class="btn btn-default" />
+
+                <a asp-action="Index">Powrót</a>
+
             </div>
+            <h4>Dostępne</h4>
+            <div class="form-actions no-color">
+                <p>
+                    Wyszukaj: <input type="text" name="searchString" value="@ViewData["CurrentFilter"]" />
+                    <input type="submit" value="Szukaj" class="btn btn-default" />
+                    
+                </p>
+            </div>
+            <div>
+                <table class="table">
+                    <tr>
+                        <th>Tytuł</th>
+                        <th>Autor</th>
+                        <th>Wypożycz</th>
+                    </tr>
+                    @foreach (var item in ViewBag.Books)
+                    {
+                        <tr>
+
+                            <td>
+                                @item.Tytul
+                            </td>
+                            <td>
+                                @item.Autor.Nazwisko
+                                @item.Autor.Imie
+                            </td>
+                            <td>
+                                <input type="checkbox"
+                                       name="selectedBooks"
+                                       value="@item.BookID" />
+                            </td>
+
+                        </tr>
+                    }
+                </table>
+            </div>
+
         </form>
     </div>
 </div>
 
-<div>
+<div class="form-group">
+    <input type="submit" value="Zatwierdź" class="btn btn-default" />
+
     <a asp-action="Index">Powrót</a>
+
 </div>
 
 @section Scripts {
