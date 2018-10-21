@@ -17,5 +17,6 @@ namespace Czytelnia.Models
         public DateTime Zapisany_od { get; set; }
         [Display(Name ="Wypożyczone")]
         public ICollection<Book> Books { get; set; }
+        
     }
 }

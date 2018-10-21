@@ -124,7 +124,7 @@ namespace Czytelnia.Controllers
         }
 
 
-        private void PopulateBookDropdownList(string searchString)
+        private void PopulateBookDropdownList(string searchString,int Records)
         {
             //string query = "SELECT * FROM Book WHERE UserID = null";
             var booksQuery = from d in _context.Books
@@ -133,7 +133,7 @@ namespace Czytelnia.Controllers
             {
                 booksQuery = booksQuery.Where(b => b.Tytul.Contains(searchString)).OrderBy(b=>b.Tytul);
             }
-            
+                        
             ViewBag.Books = new List<Book>(booksQuery.Where(b=>b.UserID==null).Include(b=>b.Autor).AsNoTracking());
             
         }
@@ -171,7 +171,7 @@ namespace Czytelnia.Controllers
         {
             return _context.Users.Any(e => e.UserID == id);
         }
-        public async Task<IActionResult> Wypozycz(int? id, string currentFilter,string searchString)
+        public async Task<IActionResult> Wypozycz(int? id, int[] selectedBooks, string currentFilter,string searchString, int Records)
         {
             if (id == null)
             {
@@ -182,6 +182,7 @@ namespace Czytelnia.Controllers
             {
                 searchString = currentFilter;
             }
+            ViewData["CurrentRecord"] = Records;
             var user = await _context.Users
                 .Include(u=>u.Books)
                     .ThenInclude(b =>b.Autor)
@@ -191,10 +192,33 @@ namespace Czytelnia.Controllers
             {
                 return NotFound();
             }
-            PopulateBookDropdownList(searchString);
+            if (ModelState.IsValid && selectedBooks.Length>0)
+            {
+                UpdateUserBooks(user, selectedBooks);
+                try
+                {
+                    _context.Update(user);
+                    await _context.SaveChangesAsync();
+                }
+                catch (DbUpdateConcurrencyException)
+                {
+                    if (!UserExists(user.UserID))
+                    {
+                        return NotFound();
+                    }
+                    else
+                    {
+                        throw;
+                    }
+                }
+
+                return RedirectToAction(nameof(Wypozycz));
+            }
+            PopulateRecodrsList();
+            PopulateBookDropdownList(searchString,Records);
             return View(user);
         }
-        [HttpPost]
+        /*[HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Wypozycz(int id, [Bind("UserID,Imie,Nazwisko,Zapisany_od,Books")] User user, int[] selectedBooks,string searchString,string currentFilter)
         {
@@ -232,12 +256,12 @@ namespace Czytelnia.Controllers
                         throw;
                     }
                 }
-                PopulateBookDropdownList(searchString);
+                
                 return RedirectToAction(nameof(Wypozycz));
             }
             PopulateBookDropdownList(searchString);
             return View(user);
-        }
+        }*/
         private void UpdateUserBooks(User userToUpdate, int[] selectedBooks)
         {
             
@@ -267,6 +291,10 @@ namespace Czytelnia.Controllers
                     }
                 }
             }
+        }
+        private void PopulateRecodrsList()
+        {
+            ViewBag.Rec = new SelectList(new List<int> { 10, 20, 50 });
         }
     }
 

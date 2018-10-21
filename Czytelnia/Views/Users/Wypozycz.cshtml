@@ -9,7 +9,7 @@
 <h4>Czytelnik</h4>
 <hr />
 <div class="row">
-    <div class="col-md-6">
+    <div class="col-md-8">
         <form asp-action="Wypozycz">
             <div asp-validation-summary="ModelOnly" class="text-danger"></div>
             <input type="hidden" asp-for="UserID" />
@@ -79,6 +79,7 @@
                     Wyszukaj: <input type="text" name="searchString" value="@ViewData["CurrentFilter"]" />
                     <input type="submit" value="Szukaj" class="btn btn-default" />
                     
+
                 </p>
             </div>
             <div>
@@ -110,16 +111,17 @@
                 </table>
             </div>
 
+            <div class="form-group">
+                <input type="submit" value="Zatwierdź" class="btn btn-default" />
+
+                <a asp-action="Index">Powrót</a>
+
+            </div>
+
         </form>
     </div>
 </div>
 
-<div class="form-group">
-    <input type="submit" value="Zatwierdź" class="btn btn-default" />
-
-    <a asp-action="Index">Powrót</a>
-
-</div>
 
 @section Scripts {
     @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
