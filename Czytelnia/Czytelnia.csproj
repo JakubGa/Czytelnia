@@ -2,12 +2,20 @@
 
   <PropertyGroup>
     <TargetFramework>netcoreapp2.1</TargetFramework>
+    <UserSecretsId>876c4d8d-1dc6-47d4-b58b-dc689c22f11b</UserSecretsId>
+    <ApplicationInsightsResourceId>/subscriptions/6f275e1f-f761-4024-86a2-2c3141ad2f62/resourcegroups/Default-ApplicationInsights-EastUS/providers/microsoft.insights/components/Czytelnia</ApplicationInsightsResourceId>
+    <ApplicationInsightsAnnotationResourceId>/subscriptions/6f275e1f-f761-4024-86a2-2c3141ad2f62/resourcegroups/Default-ApplicationInsights-EastUS/providers/microsoft.insights/components/Czytelnia</ApplicationInsightsAnnotationResourceId>
   </PropertyGroup>
 
   <ItemGroup>
+    <PackageReference Include="Microsoft.ApplicationInsights.AspNetCore" Version="2.1.1" />
     <PackageReference Include="Microsoft.AspNetCore.App" />
     <PackageReference Include="Microsoft.AspNetCore.Razor.Design" Version="2.1.2" PrivateAssets="All" />
-    <PackageReference Include="Microsoft.VisualStudio.Web.CodeGeneration.Design" Version="2.1.1" />
+    <PackageReference Include="Microsoft.VisualStudio.Web.CodeGeneration.Design" Version="2.1.5" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <WCFMetadata Include="Connected Services" />
   </ItemGroup>
 
 </Project>
